@@ -1,0 +1,106 @@
+### ===================================================================
+### TEST FLOW: SUBMISSION PROGETTO DA PARTE DI UN TEAM
+### ===================================================================
+
+### 1. PREPARAZIONE DATI (Se non li hai già creati)
+### ---------------------------------------------------
+
+### 1.1 Crea l'Utente (Leader del Team)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{ "nome": "Bruce", "cognome": "Wayne", "email": "bruce@wayne.com", "password": "bat" }
+
+### 1.2 Crea il Team "Wayne Tech" (Creato dall'utente con ID 1, verifica il tuo DB)
+POST http://localhost:8080/api/teams/create
+Content-Type: application/json
+
+{
+  "nomeTeam": "Wayne Tech",
+  "creatorUserId": 1
+}
+### 2.1 sec
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{ "nome": "Bruc", "cognome": "Wayne", "email": "buce@wayne.com", "password": "bat" }
+
+### terz
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{ "nome": "Bruc", "cognome": "Wane", "email": "bruc@wayne.com", "password": "bat" }
+### qart
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{ "nome": "ruce", "cognome": "Wayne", "email": "bruce@wayn.com", "password": "bat" }
+
+### 1.3 Crea l'Hackathon (Serve un Organizer ID 1 e Judge ID 1 per semplicità, o creane altri)
+POST http://localhost:8080/api/hackathons/create
+Content-Type: application/json
+
+{
+  "organizerId": 2,
+  "judgeId": 3,
+  "mentorIds": [4],
+  "nome": "Gotham Hackathon",
+  "regolamento": "No killing.",
+  "luogo": "Batcave",
+  "premio": 5000.00,
+  "dimensioneMassimaTeam": 3,
+  "dataInizio": "2026-05-01T09:00:00",
+  "dataFine": "2026-05-03T18:00:00",
+  "scadenzaIscrizione": "2026-04-30T23:59:00"
+}
+
+### 2. ISCRIZIONE E AVVIO (Requisiti Fondamentali)
+### ---------------------------------------------------
+
+### 2.1 Il team si iscrive (Mentre è REGISTRATION_OPEN)
+POST http://localhost:8080/api/registrations/join
+Content-Type: application/json
+
+{
+  "hackathonId": 1,
+  "teamId": 1,
+  "userId": 1
+}
+
+### 2.2 L'Organizzatore AVVIA l'Hackathon (Passa a ONGOING)
+# ATTENZIONE: Se salti questo passo, la submission fallirà con errore "L'Hackathon non è in fase ONGOING"
+POST http://localhost:8080/api/hackathons/1/next-phase?organizerId=2
+
+### 3. SUBMISSION DEL PROGETTO (Il Test Vero e Proprio)
+### ---------------------------------------------------
+
+### 3.1 Invio Iniziale
+POST http://localhost:8080/api/submissions/submit
+Content-Type: application/json
+
+{
+  "hackathonId": 1,
+  "teamId": 1,
+  "userId": 1,
+  "repositoryLink": "https://github.com/wayne-ent/project-bat",
+  "descrizione": "Un sistema di sorveglianza per Gotham."
+}
+
+### 3.2 (Opzionale) Aggiornamento della Submission
+# Se il team invia di nuovo mentre è ancora ONGOING, il sistema deve aggiornare il link/descrizione invece di creare un duplicato.
+POST http://localhost:8080/api/submissions/submit
+Content-Type: application/json
+
+{
+  "hackathonId": 1,
+  "teamId": 1,
+  "userId": 1,
+  "repositoryLink": "https://github.com/wayne-ent/project-bat-v2",
+  "descrizione": "Versione aggiornata con AI."
+}
+
+### 4. VERIFICA LATO STAFF
+### ---------------------------------------------------
+
+### 4.1 Controlliamo che la submission sia stata salvata (Chiamata da un Giudice/Staff)
+GET http://localhost:8080/api/submissions/hackathon/1?userId=1
